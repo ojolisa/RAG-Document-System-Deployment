@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Document System</title>
+    <link rel="icon" type="image/x-icon"
+        href="data:image/x-icon;base64,AAABAAEAEBAAAAAAAABoBQAAFgAAACgAAAAQAAAAIAAAAAEACAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAA">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(15, 23, 42, 0.95);
+            border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: #f1f5f9;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%);
+        }
+
+        .header>* {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 12px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            padding: 40px;
+        }
+
+        .section {
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 12px;
+            padding: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .section:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .section h2 {
+            color: #f1f5f9;
+            margin-bottom: 24px;
+            font-size: 1.75rem;
+            font-weight: 600;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: #cbd5e1;
+            font-size: 0.95rem;
+        }
+
+        input[type="file"],
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 16px;
+            color: #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        input[type="file"]:focus,
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-right: 12px;
+            margin-bottom: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn:hover::before {
+            opacity: 1;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn>* {
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn:disabled {
+            background: rgba(100, 116, 139, 0.5);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+        }
+
+        .btn-secondary::before {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 10px 25px rgba(100, 116, 139, 0.3);
+        }
+
+        .response-area {
+            margin-top: 24px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .response-area pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #e2e8f0;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            backdrop-filter: blur(5px);
+        }
+
+        .status.connected {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .status.disconnected {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #94a3b8;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .documents-list {
+            max-height: 350px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .document-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .document-item:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .document-content {
+            cursor: pointer;
+        }
+
+        .document-content:hover {
+            transform: translateX(8px);
+        }
+
+        .document-name {
+            font-weight: 600;
+            color: #f1f5f9;
+            font-size: 16px;
+        }
+
+        .document-info {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-top: 6px;
+        }
+
+        .document-actions {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-delete::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn-delete:hover::before {
+            opacity: 1;
+        }
+
+        .btn-delete:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-delete>* {
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-delete:disabled {
+            background: rgba(100, 116, 139, 0.5);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .sources {
+            margin-top: 20px;
+        }
+
+        .source-item {
+            background: rgba(30, 58, 138, 0.2);
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .source-title {
+            font-weight: 600;
+            color: #60a5fa;
+            margin-bottom: 8px;
+        }
+
+        .source-preview {
+            font-size: 13px;
+            color: #cbd5e1;
+            font-style: italic;
+            line-height: 1.5;
+        }
+
+        /* Custom scrollbar */
+        .response-area::-webkit-scrollbar,
+        .documents-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .response-area::-webkit-scrollbar-track,
+        .documents-list::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .response-area::-webkit-scrollbar-thumb,
+        .documents-list::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.5);
+            border-radius: 4px;
+        }
+
+        .response-area::-webkit-scrollbar-thumb:hover,
+        .documents-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.7);
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 24px;
+                padding: 24px;
+            }
+
+            .header {
+                padding: 32px 20px;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .section {
+                padding: 24px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 RAG Document System</h1>
+            <p>Upload documents and query them using AI-powered search</p>
+            <div id="connectionStatus" class="status disconnected">⚫ Disconnected</div>
+        </div>
+
+        <div class="main-content">
+            <!-- Upload Section -->
+            <div class="section">
+                <h2>📄 Upload Document</h2>
+                <div class="form-group">
+                    <label for="fileInput">Select PDF File:</label>
+                    <input type="file" id="fileInput" accept=".pdf">
+                </div>
+                <button class="btn" onclick="uploadDocument()">Upload Document</button>
+                <button class="btn btn-secondary" onclick="loadDocuments()">Refresh Documents</button>
+
+                <div class="loading" id="uploadLoading">
+                    Uploading and processing document...
+                </div>
+
+                <div class="response-area" id="uploadResponse" style="display: none;">
+                    <pre id="uploadResponseText"></pre>
+                </div>
+
+                <div class="documents-list" id="documentsList">
+                    <!-- Documents will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Query Section -->
+            <div class="section">
+                <h2>🔍 Query Documents</h2>
+                <div class="form-group">
+                    <label for="questionInput">Your Question:</label>
+                    <textarea id="questionInput" placeholder="Ask something about your documents..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="kInput">Number of Sources (k):</label>
+                    <input type="number" id="kInput" value="5" min="1" max="10">
+                </div>
+                <button class="btn" onclick="queryDocuments()">Ask Question</button>
+                <button class="btn btn-secondary" onclick="clearQuery()">Clear</button>
+
+                <div class="loading" id="queryLoading">
+                    Searching and generating answer...
+                </div>
+
+                <div class="response-area" id="queryResponse" style="display: none;">
+                    <div id="answerSection"></div>
+                    <div id="sourcesSection" class="sources"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API configuration - for single deployment, API is on same domain
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? 'http://localhost:8000'  // Local development - separate API server
+            : window.location.origin;  // Production - same server
+
+        // Check API connection on load
+        window.addEventListener('load', function () {
+            checkConnection();
+            loadDocuments();
+        });
+
+        async function checkConnection() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+
+                const statusEl = document.getElementById('connectionStatus');
+                if (response.ok && data.status === 'healthy') {
+                    statusEl.textContent = '🟢 Connected';
+                    statusEl.className = 'status connected';
+                } else {
+                    statusEl.textContent = '🔴 API Error';
+                    statusEl.className = 'status disconnected';
+                }
+            } catch (error) {
+                const statusEl = document.getElementById('connectionStatus');
+                statusEl.textContent = '🔴 Connection Failed';
+                statusEl.className = 'status disconnected';
+            }
+        }
+
+        async function uploadDocument() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Please select a PDF file first');
+                return;
+            }
+
+            if (!file.name.toLowerCase().endsWith('.pdf')) {
+                alert('Please select a PDF file');
+                return;
+            }
+
+            const loadingEl = document.getElementById('uploadLoading');
+            const responseEl = document.getElementById('uploadResponse');
+            const responseTextEl = document.getElementById('uploadResponseText');
+
+            loadingEl.classList.add('show');
+            responseEl.style.display = 'none';
+
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch(`${API_BASE}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                loadingEl.classList.remove('show');
+                responseEl.style.display = 'block';
+                responseTextEl.textContent = JSON.stringify(data, null, 2);
+
+                if (response.ok) {
+                    fileInput.value = '';
+                    loadDocuments(); // Refresh document list
+                }
+            } catch (error) {
+                loadingEl.classList.remove('show');
+                responseEl.style.display = 'block';
+                responseTextEl.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function queryDocuments() {
+            const question = document.getElementById('questionInput').value.trim();
+            const k = parseInt(document.getElementById('kInput').value) || 5;
+
+            if (!question) {
+                alert('Please enter a question');
+                return;
+            }
+
+            const loadingEl = document.getElementById('queryLoading');
+            const responseEl = document.getElementById('queryResponse');
+            const answerEl = document.getElementById('answerSection');
+            const sourcesEl = document.getElementById('sourcesSection');
+
+            loadingEl.classList.add('show');
+            responseEl.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_BASE}/query`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        question: question,
+                        k: k
+                    })
+                });
+
+                const data = await response.json();
+
+                loadingEl.classList.remove('show');
+                responseEl.style.display = 'block'; if (response.ok) {
+                    // Display answer
+                    answerEl.innerHTML = `
+                        <div style="background: rgba(34, 197, 94, 0.15); padding: 20px; border-radius: 8px; border-left: 4px solid #22c55e; border: 1px solid rgba(34, 197, 94, 0.2);">
+                            <h3 style="color: #4ade80; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">📝 Answer</h3>
+                            <p style="line-height: 1.7; color: #e2e8f0; font-size: 15px;">${data.answer}</p>
+                            <small style="color: #94a3b8; font-style: italic; margin-top: 12px; display: block;">
+                                Processing time: ${data.processing_time ? data.processing_time.toFixed(2) : 'N/A'}s
+                            </small>
+                        </div>
+                    `;
+
+                    // Display sources
+                    if (data.sources && data.sources.length > 0) {
+                        let sourcesHtml = '<h4 style="margin-top: 24px; color: #f1f5f9; display: flex; align-items: center; gap: 8px;">📚 Sources</h4>';
+                        data.sources.forEach((source, index) => {
+                            sourcesHtml += `
+                                <div class="source-item">
+                                    <div class="source-title">
+                                        ${index + 1}. ${source.filename} (Chunk ${source.chunk_id})
+                                    </div>
+                                    <div style="font-size: 13px; color: #94a3b8; margin-bottom: 8px;">
+                                        Similarity Score: ${source.score ? source.score.toFixed(4) : 'N/A'}
+                                    </div>
+                                    <div class="source-preview">${source.content_preview}</div>
+                                </div>
+                            `;
+                        });
+                        sourcesEl.innerHTML = sourcesHtml;
+                    } else {
+                        sourcesEl.innerHTML = '';
+                    }
+                } else {
+                    answerEl.innerHTML = `
+                        <div style="background: rgba(239, 68, 68, 0.15); padding: 20px; border-radius: 8px; border-left: 4px solid #ef4444; border: 1px solid rgba(239, 68, 68, 0.2);">
+                            <h3 style="color: #f87171; display: flex; align-items: center; gap: 8px;">❌ Error</h3>
+                            <pre style="color: #f87171; font-size: 14px; margin-top: 12px;">${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                    sourcesEl.innerHTML = '';
+                }
+            } catch (error) {
+                loadingEl.classList.remove('show');
+                responseEl.style.display = 'block';
+                answerEl.innerHTML = `
+                    <div style="background: rgba(239, 68, 68, 0.15); padding: 20px; border-radius: 8px; border-left: 4px solid #ef4444; border: 1px solid rgba(239, 68, 68, 0.2);">
+                        <h3 style="color: #f87171; display: flex; align-items: center; gap: 8px;">❌ Connection Error</h3>
+                        <p style="color: #f87171; margin-top: 12px;">${error.message}</p>
+                    </div>
+                `;
+                sourcesEl.innerHTML = '';
+            }
+        } async function loadDocuments() {
+            try {
+                const response = await fetch(`${API_BASE}/documents`);
+                const data = await response.json();
+
+                const documentsListEl = document.getElementById('documentsList');
+                if (response.ok && data.documents && data.documents.length > 0) {
+                    let documentsHtml = '<h4 style="color: #f1f5f9; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">📚 Uploaded Documents</h4>';
+
+                    data.documents.forEach(doc => {
+                        const uploadDate = new Date(doc.upload_date).toLocaleDateString();
+                        const fileSize = (doc.file_size / 1024).toFixed(1);
+
+                        documentsHtml += `
+                            <div class="document-item">
+                                <div class="document-actions">
+                                    <button class="btn-delete" onclick="deleteDocument(${doc.id}, '${doc.original_name}')" title="Delete document">
+                                        🗑️ Delete
+                                    </button>
+                                </div>
+                                <div class="document-content" onclick="showDocumentDetails(${doc.id})">
+                                    <div class="document-name">${doc.original_name}</div>
+                                    <div class="document-info">
+                                        ${fileSize} KB • ${doc.total_chunks} chunks • ${uploadDate} • ${doc.status}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    documentsListEl.innerHTML = documentsHtml;
+                } else {
+                    documentsListEl.innerHTML = '<p style="color: #94a3b8; font-style: italic; text-align: center; padding: 20px;">No documents uploaded yet</p>';
+                }
+            } catch (error) {
+                const documentsListEl = document.getElementById('documentsList');
+                documentsListEl.innerHTML = '<p style="color: #f87171; text-align: center; padding: 20px;">Error loading documents</p>';
+            }
+        }
+
+        function clearQuery() {
+            document.getElementById('questionInput').value = '';
+            document.getElementById('queryResponse').style.display = 'none';
+            document.getElementById('answerSection').innerHTML = '';
+            document.getElementById('sourcesSection').innerHTML = '';
+        } async function deleteDocument(documentId, documentName) {
+            // Confirm deletion
+            if (!confirm(`Are you sure you want to delete "${documentName}"?\n\nThis action cannot be undone and will remove the document from the knowledge base.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/documents/${documentId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Show success message
+                    alert(`✅ Document "${documentName}" has been deleted successfully!`);
+
+                    // Refresh the documents list
+                    loadDocuments();
+                } else {
+                    // Show error message
+                    alert(`❌ Error deleting document: ${data.error || 'Unknown error'}`);
+                }
+            } catch (error) {
+                alert(`❌ Network error: ${error.message}`);
+            }
+        }
+
+        function showDocumentDetails(documentId) {
+            // Simple implementation - just show an alert with document ID
+            // You could expand this to show a modal with full document details
+            alert(`Document ID: ${documentId}\nClick OK to continue.\n\nYou can expand this to show detailed document information.`);
+        }
+    </script>
+</body>
+
+</html>
