@@ -8,8 +8,7 @@ from datetime import datetime
 import shutil
 from typing import List, Optional
 from pydantic import BaseModel
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, Session, declarative_base
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text, Float
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -120,7 +119,7 @@ app.add_middleware(
 )
 
 # Mount static files (frontend)
-app.mount("/static", StaticFiles(directory="../frontend"), name="static")
+app.mount("/static", StaticFiles(directory="frontend"), name="static")
 
 # Initialize RAG pipeline
 rag_pipeline = None
@@ -138,9 +137,9 @@ def get_rag_pipeline():
     global rag_pipeline
     if rag_pipeline is None:
         # Use the correct paths for all RAG components in the rag folder
-        pdfs_path = os.path.join("..", "rag", "pdfs")
-        index_path = os.path.join("..", "rag", "faiss_index.bin")
-        embeddings_path = os.path.join("..", "rag", "embeddings.pkl")
+        pdfs_path = os.path.join("rag", "pdfs")
+        index_path = os.path.join("rag", "faiss_index.bin")
+        embeddings_path = os.path.join("rag", "embeddings.pkl")
         
         rag_pipeline = RAGPipeline(
             pdfs_folder=pdfs_path,
@@ -181,7 +180,7 @@ async def upload_document(
     # Create unique filename to avoid conflicts
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     safe_filename = f"{timestamp}_{file.filename}"
-    file_path = os.path.join("..", "rag", "pdfs", safe_filename)
+    file_path = os.path.join("rag", "pdfs", safe_filename)
 
     # Save uploaded file
     with open(file_path, "wb") as buffer:
@@ -353,7 +352,7 @@ async def delete_document(
         return {"error": "Document not found"}
 
     # Delete physical file
-    file_path = os.path.join("..", "rag", "pdfs", document.filename)
+    file_path = os.path.join("rag", "pdfs", document.filename)
     if os.path.exists(file_path):
         os.remove(file_path)
 
@@ -388,7 +387,7 @@ async def root():
     """
     Serve the main frontend page
     """
-    return FileResponse('../frontend/index.html')
+    return FileResponse('frontend/index.html')
 
 
 @app.get("/api")
